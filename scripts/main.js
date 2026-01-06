@@ -1,88 +1,58 @@
-// DSA5 Makro-Helfer Modul - Alternative Version mit UI Button
+// DSA5 Makro-Helfer Modul - Version mit direkter Controls Integration
 console.log('DSA5 Makro-Helfer | Modul wird geladen...');
 
 Hooks.once('ready', () => {
   console.log('DSA5 Makro-Helfer | Modul geladen');
   console.log('DSA5 Makro-Helfer | Foundry Version:', game.version);
-  
-  // Erstelle Button nach kurzem Delay
-  setTimeout(() => {
-    erstelleToolbarButton();
-  }, 500);
 });
 
-function erstelleToolbarButton() {
-  console.log('DSA5 Makro-Helfer | Erstelle Toolbar Button');
+Hooks.on('getSceneControlButtons', (controls) => {
+  console.log('DSA5 Makro-Helfer | getSceneControlButtons aufgerufen');
   
-  // Warte bis Sidebar geladen ist
-  if (!$('#sidebar-tabs').length) {
-    console.log('DSA5 Makro-Helfer | Sidebar noch nicht bereit, warte...');
-    setTimeout(erstelleToolbarButton, 500);
-    return;
-  }
-  
-  // Erstelle HTML für den Button
-  const button = $(`
-    <button id="dsa5-helper-button" title="DSA5 Makro-Helfer">
-      <i class="fas fa-dice-d20"></i>
-    </button>
-  `);
-  
-  // Füge Button VOR dem ersten Tab in der Sidebar ein
-  $('#sidebar-tabs').before(button);
-  
-  // Click Event
-  button.on('click', function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    console.log('DSA5 Makro-Helfer | Button geklickt');
-    zeigeHauptmenu();
-  });
-  
-  console.log('DSA5 Makro-Helfer | Button erstellt und hinzugefügt');
-}
-
-function zeigeHauptmenu() {
-  new Dialog({
-    title: 'DSA5 Makro-Helfer',
-    content: `
-      <div style="text-align: center; padding: 20px;">
-        <p>Welches Makro möchtest du erstellen?</p>
-      </div>
-    `,
-    buttons: {
-      skript1: {
-        icon: '<i class="fas fa-dice"></i>',
-        label: 'Feste Fertigkeitsprobe',
-        callback: () => {
-          zeigeSkript1Dialog();
-        }
+  const dsa5Tools = {
+    name: "dsa5helper",
+    title: "DSA5 Makro-Helfer",
+    icon: "fas fa-dice-d20",
+    visible: true,
+    layer: "TokenLayer",
+    activeTool: "select",
+    tools: [
+      {
+        name: "select",
+        title: "DSA5 Makro-Helfer",
+        icon: "fas fa-dice-d20"
       },
-      skript2: {
-        icon: '<i class="fas fa-comment-dots"></i>',
-        label: 'Fertigkeitsprobe mit Dialog',
-        callback: () => {
-          zeigeSkript2Dialog();
-        }
+      {
+        name: "skript1",
+        title: "Feste Fertigkeitsprobe erstellen",
+        icon: "fas fa-dice",
+        onClick: () => zeigeSkript1Dialog(),
+        button: true
       },
-      skript3: {
-        icon: '<i class="fas fa-layer-group"></i>',
-        label: 'Mehrfach-Fertigkeitsproben',
-        callback: () => {
-          erstelleSkript3Makro();
-        }
+      {
+        name: "skript2",
+        title: "Fertigkeitsprobe mit Dialog erstellen",
+        icon: "fas fa-comment-dots",
+        onClick: () => zeigeSkript2Dialog(),
+        button: true
       },
-      cancel: {
-        icon: '<i class="fas fa-times"></i>',
-        label: 'Abbrechen'
+      {
+        name: "skript3",
+        title: "Mehrfach-Fertigkeitsproben erstellen",
+        icon: "fas fa-layer-group",
+        onClick: () => erstelleSkript3Makro(),
+        button: true
       }
-    },
-    default: 'skript1'
-  }).render(true);
-}
+    ]
+  };
+  
+  controls.push(dsa5Tools);
+  console.log('DSA5 Makro-Helfer | Control hinzugefügt. Anzahl controls:', controls.length);
+});
 
 // Dialog für Skript 1
 function zeigeSkript1Dialog() {
+  console.log('DSA5 Makro-Helfer | Skript 1 Dialog wird geöffnet');
   new Dialog({
     title: 'Feste Fertigkeitsprobe erstellen',
     content: `
@@ -144,6 +114,7 @@ function zeigeSkript1Dialog() {
 
 // Dialog für Skript 2
 function zeigeSkript2Dialog() {
+  console.log('DSA5 Makro-Helfer | Skript 2 Dialog wird geöffnet');
   new Dialog({
     title: 'Fertigkeitsprobe mit Dialog erstellen',
     content: `
@@ -434,6 +405,8 @@ async function ausfuehrenFertigkeitsprobe(eigenschaften, fertigkeitswert, name, 
 
 // Erstelle Skript 3 Makro
 async function erstelleSkript3Makro() {
+  console.log('DSA5 Makro-Helfer | Skript 3 wird erstellt');
+  
   const existingMacro = game.macros.find(m => m.name === "Mehrfach-Fertigkeitsproben");
   
   if (existingMacro) {
@@ -648,7 +621,6 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
       const differenz = modifizierterWurf - eigenschaft;
       fertigkeitspunkteUebrig -= differenz;
     }
-  }
 
   let qualitaetsstufe = 0;
   if (fertigkeitspunkteUebrig < 0) {
@@ -685,4 +657,3 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
-
