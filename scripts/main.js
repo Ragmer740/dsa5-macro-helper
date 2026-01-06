@@ -14,33 +14,43 @@ Hooks.on('getSceneControlButtons', (controls) => {
     title: "DSA5 Makro-Helfer",
     icon: "fas fa-dice-d20",
     visible: true,
-    layer: "TokenLayer",
+    order: 100, // Ganz am Ende der Liste
     activeTool: "select",
     tools: [
       {
         name: "select",
         title: "DSA5 Makro-Helfer",
-        icon: "fas fa-dice-d20"
+        icon: "fas fa-dice-d20",
+        button: false
       },
       {
         name: "skript1",
         title: "Feste Fertigkeitsprobe erstellen",
         icon: "fas fa-dice",
-        onClick: () => zeigeSkript1Dialog(),
+        onClick: () => {
+          console.log('DSA5 Makro-Helfer | Skript 1 geklickt');
+          zeigeSkript1Dialog();
+        },
         button: true
       },
       {
         name: "skript2",
         title: "Fertigkeitsprobe mit Dialog erstellen",
         icon: "fas fa-comment-dots",
-        onClick: () => zeigeSkript2Dialog(),
+        onClick: () => {
+          console.log('DSA5 Makro-Helfer | Skript 2 geklickt');
+          zeigeSkript2Dialog();
+        },
         button: true
       },
       {
         name: "skript3",
         title: "Mehrfach-Fertigkeitsproben erstellen",
         icon: "fas fa-layer-group",
-        onClick: () => erstelleSkript3Makro(),
+        onClick: () => {
+          console.log('DSA5 Makro-Helfer | Skript 3 geklickt');
+          erstelleSkript3Makro();
+        },
         button: true
       }
     ]
@@ -659,5 +669,6 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
+
 
 
