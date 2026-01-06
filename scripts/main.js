@@ -1,56 +1,77 @@
-// DSA5 Makro-Helfer Modul
+// DSA5 Makro-Helfer Modul - Alternative Version mit UI Button
 console.log('DSA5 Makro-Helfer | Modul wird geladen...');
 
 Hooks.once('ready', () => {
   console.log('DSA5 Makro-Helfer | Modul geladen');
   console.log('DSA5 Makro-Helfer | Foundry Version:', game.version);
+  
+  // Erstelle Button nach kurzem Delay
+  setTimeout(() => {
+    erstelleToolbarButton();
+  }, 500);
 });
 
-Hooks.on('getSceneControlButtons', (controls) => {
-  console.log('DSA5 Makro-Helfer | Scene Control Buttons werden hinzugefügt');
+function erstelleToolbarButton() {
+  console.log('DSA5 Makro-Helfer | Erstelle Toolbar Button');
   
-  // Füge einen neuen Button zur linken Toolbar hinzu
-  controls.push({
-    name: 'dsa5-helper',
+  // Erstelle HTML für den Button
+  const button = $(`
+    <button id="dsa5-helper-button" class="dsa5-helper-btn" title="DSA5 Makro-Helfer">
+      <i class="fas fa-dice-d20"></i>
+    </button>
+  `);
+  
+  // Füge Button zur Sidebar hinzu (neben dem Chat)
+  $('#sidebar').prepend(button);
+  
+  // Click Event
+  button.on('click', (event) => {
+    event.preventDefault();
+    console.log('DSA5 Makro-Helfer | Button geklickt');
+    zeigeHauptmenu();
+  });
+  
+  console.log('DSA5 Makro-Helfer | Button erstellt');
+}
+
+function zeigeHauptmenu() {
+  new Dialog({
     title: 'DSA5 Makro-Helfer',
-    icon: 'fas fa-dice-d20',
-    layer: 'notes',
-    tools: [
-      {
-        name: 'create-fixed-macro',
-        title: 'Feste Fertigkeitsprobe (Skript 1)',
-        icon: 'fas fa-dice',
-        button: true,
-        onClick: () => {
-          console.log('DSA5 Makro-Helfer | Skript 1 Button geklickt');
+    content: `
+      <div style="text-align: center; padding: 20px;">
+        <p>Welches Makro möchtest du erstellen?</p>
+      </div>
+    `,
+    buttons: {
+      skript1: {
+        icon: '<i class="fas fa-dice"></i>',
+        label: 'Feste Fertigkeitsprobe',
+        callback: () => {
           zeigeSkript1Dialog();
         }
       },
-      {
-        name: 'create-dialog-macro',
-        title: 'Fertigkeitsprobe mit Dialog (Skript 2)',
-        icon: 'fas fa-comment-dots',
-        button: true,
-        onClick: () => {
-          console.log('DSA5 Makro-Helfer | Skript 2 Button geklickt');
+      skript2: {
+        icon: '<i class="fas fa-comment-dots"></i>',
+        label: 'Fertigkeitsprobe mit Dialog',
+        callback: () => {
           zeigeSkript2Dialog();
         }
       },
-      {
-        name: 'create-multi-macro',
-        title: 'Mehrfach-Fertigkeitsproben (Skript 3)',
-        icon: 'fas fa-layer-group',
-        button: true,
-        onClick: () => {
-          console.log('DSA5 Makro-Helfer | Skript 3 Button geklickt');
+      skript3: {
+        icon: '<i class="fas fa-layer-group"></i>',
+        label: 'Mehrfach-Fertigkeitsproben',
+        callback: () => {
           erstelleSkript3Makro();
         }
+      },
+      cancel: {
+        icon: '<i class="fas fa-times"></i>',
+        label: 'Abbrechen'
       }
-    ]
-  });
-  
-  console.log('DSA5 Makro-Helfer | Buttons hinzugefügt, Anzahl Controls:', controls.length);
-});
+    },
+    default: 'skript1'
+  }).render(true);
+}
 
 // Dialog für Skript 1
 function zeigeSkript1Dialog() {
@@ -403,7 +424,7 @@ async function ausfuehrenFertigkeitsprobe(eigenschaften, fertigkeitswert, name, 
   ui.notifications.info(`Makro "${makroName}" wurde erstellt!`);
 }
 
-// Erstelle Skript 3 Makro (dieses hat keine variablen Werte)
+// Erstelle Skript 3 Makro
 async function erstelleSkript3Makro() {
   const existingMacro = game.macros.find(m => m.name === "Mehrfach-Fertigkeitsproben");
   
@@ -656,13 +677,3 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
-
-// Test: Buttons manuell hinzufügen nach einem kurzen Delay
-Hooks.once('ready', () => {
-  setTimeout(() => {
-    console.log('DSA5 Makro-Helfer | Versuche UI zu aktualisieren');
-    ui.controls.render();
-  }, 1000);
-});
-
-
