@@ -643,5 +643,7 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
     erfolg: probeGelungen,
     qs: qualitaetsstufe,
     patzer: istPatzer,
-
     kritisch: istKritisch
+      };
+}
+
