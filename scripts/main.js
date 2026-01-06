@@ -8,7 +8,6 @@ Hooks.once('ready', () => {
 
 Hooks.on('getSceneControlButtons', (controls) => {
   console.log('DSA5 Makro-Helfer | getSceneControlButtons aufgerufen');
-  console.log('DSA5 Makro-Helfer | Controls Typ:', typeof controls, Array.isArray(controls));
   
   const dsa5Tools = {
     name: "dsa5helper",
@@ -47,15 +46,8 @@ Hooks.on('getSceneControlButtons', (controls) => {
     ]
   };
   
-  // In V13 ist controls möglicherweise ein Set oder Object
-  if (Array.isArray(controls)) {
-    controls.push(dsa5Tools);
-  } else if (controls instanceof Set) {
-    controls.add(dsa5Tools);
-  } else {
-    // Fallback für andere Strukturen
-    console.log('DSA5 Makro-Helfer | Controls ist weder Array noch Set:', controls);
-  }
+  // In V13 ist controls ein Object, füge als Property hinzu
+  controls["dsa5helper"] = dsa5Tools;
   
   console.log('DSA5 Makro-Helfer | Control hinzugefügt');
 });
@@ -667,4 +659,5 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
+
 
