@@ -14,14 +14,20 @@ Hooks.on('getSceneControlButtons', (controls) => {
     title: "DSA5 Makro-Helfer",
     icon: "fas fa-dice-d20",
     visible: true,
-    order: 100, // Ganz am Ende der Liste
+    order: 100,
     activeTool: "select",
+    onChange: (control) => {
+      console.log('DSA5 Makro-Helfer | Control aktiviert');
+    },
     tools: [
       {
         name: "select",
         title: "DSA5 Makro-Helfer",
         icon: "fas fa-dice-d20",
-        button: false
+        button: false,
+        onChange: () => {
+          console.log('DSA5 Makro-Helfer | Select Tool aktiviert');
+        }
       },
       {
         name: "skript1",
@@ -31,7 +37,8 @@ Hooks.on('getSceneControlButtons', (controls) => {
           console.log('DSA5 Makro-Helfer | Skript 1 geklickt');
           zeigeSkript1Dialog();
         },
-        button: true
+        button: true,
+        onChange: () => {}
       },
       {
         name: "skript2",
@@ -41,7 +48,8 @@ Hooks.on('getSceneControlButtons', (controls) => {
           console.log('DSA5 Makro-Helfer | Skript 2 geklickt');
           zeigeSkript2Dialog();
         },
-        button: true
+        button: true,
+        onChange: () => {}
       },
       {
         name: "skript3",
@@ -51,12 +59,12 @@ Hooks.on('getSceneControlButtons', (controls) => {
           console.log('DSA5 Makro-Helfer | Skript 3 geklickt');
           erstelleSkript3Makro();
         },
-        button: true
+        button: true,
+        onChange: () => {}
       }
     ]
   };
   
-  // In V13 ist controls ein Object, füge als Property hinzu
   controls["dsa5helper"] = dsa5Tools;
   
   console.log('DSA5 Makro-Helfer | Control hinzugefügt');
@@ -669,6 +677,7 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
+
 
 
 
