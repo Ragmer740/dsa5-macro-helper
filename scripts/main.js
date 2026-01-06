@@ -1,10 +1,14 @@
 // DSA5 Makro-Helfer Modul
+console.log('DSA5 Makro-Helfer | Modul wird geladen...');
 
 Hooks.once('ready', () => {
   console.log('DSA5 Makro-Helfer | Modul geladen');
+  console.log('DSA5 Makro-Helfer | Foundry Version:', game.version);
 });
 
 Hooks.on('getSceneControlButtons', (controls) => {
+  console.log('DSA5 Makro-Helfer | Scene Control Buttons werden hinzugefügt');
+  
   // Füge einen neuen Button zur linken Toolbar hinzu
   controls.push({
     name: 'dsa5-helper',
@@ -18,6 +22,7 @@ Hooks.on('getSceneControlButtons', (controls) => {
         icon: 'fas fa-dice',
         button: true,
         onClick: () => {
+          console.log('DSA5 Makro-Helfer | Skript 1 Button geklickt');
           zeigeSkript1Dialog();
         }
       },
@@ -27,6 +32,7 @@ Hooks.on('getSceneControlButtons', (controls) => {
         icon: 'fas fa-comment-dots',
         button: true,
         onClick: () => {
+          console.log('DSA5 Makro-Helfer | Skript 2 Button geklickt');
           zeigeSkript2Dialog();
         }
       },
@@ -36,11 +42,14 @@ Hooks.on('getSceneControlButtons', (controls) => {
         icon: 'fas fa-layer-group',
         button: true,
         onClick: () => {
+          console.log('DSA5 Makro-Helfer | Skript 3 Button geklickt');
           erstelleSkript3Makro();
         }
       }
     ]
   });
+  
+  console.log('DSA5 Makro-Helfer | Buttons hinzugefügt, Anzahl Controls:', controls.length);
 });
 
 // Dialog für Skript 1
@@ -634,4 +643,5 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
     erfolg: probeGelungen,
     qs: qualitaetsstufe,
     patzer: istPatzer,
+
     kritisch: istKritisch
