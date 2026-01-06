@@ -14,7 +14,7 @@ Hooks.on('getSceneControlButtons', (controls) => {
     name: 'dsa5-helper',
     title: 'DSA5 Makro-Helfer',
     icon: 'fas fa-dice-d20',
-    layer: 'tokens',
+   //layer: 'tokens',
     tools: [
       {
         name: 'create-fixed-macro',
@@ -656,3 +656,11 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
+
+// Test: Buttons manuell hinzufügen nach einem kurzen Delay
+Hooks.once('ready', () => {
+  setTimeout(() => {
+    console.log('DSA5 Makro-Helfer | Versuche UI zu aktualisieren');
+    ui.controls.render();
+  }, 1000);
+});
