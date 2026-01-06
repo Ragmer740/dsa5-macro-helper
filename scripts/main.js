@@ -14,7 +14,7 @@ Hooks.on('getSceneControlButtons', (controls) => {
     name: 'dsa5-helper',
     title: 'DSA5 Makro-Helfer',
     icon: 'fas fa-dice-d20',
-   //layer: 'tokens',
+    layer: 'TokenLayer',
     tools: [
       {
         name: 'create-fixed-macro',
@@ -664,3 +664,4 @@ Hooks.once('ready', () => {
     ui.controls.render();
   }, 1000);
 });
+
