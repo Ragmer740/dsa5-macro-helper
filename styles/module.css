@@ -1,0 +1,28 @@
+{
+  "id": "dsa5-macro-helper",
+  "title": "DSA5 Makro-Helfer",
+  "description": "Hilft beim Erstellen von DSA5 Fertigkeitsproben-Makros",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "Dein Name"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/module.css"
+  ],
+  "languages": [
+    {
+      "lang": "de",
+      "name": "Deutsch",
+      "path": "lang/de.json"
+    }
+  ]
+}
