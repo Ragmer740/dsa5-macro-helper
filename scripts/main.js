@@ -14,24 +14,32 @@ Hooks.once('ready', () => {
 function erstelleToolbarButton() {
   console.log('DSA5 Makro-Helfer | Erstelle Toolbar Button');
   
+  // Warte bis Sidebar geladen ist
+  if (!$('#sidebar-tabs').length) {
+    console.log('DSA5 Makro-Helfer | Sidebar noch nicht bereit, warte...');
+    setTimeout(erstelleToolbarButton, 500);
+    return;
+  }
+  
   // Erstelle HTML für den Button
   const button = $(`
-    <button id="dsa5-helper-button" class="dsa5-helper-btn" title="DSA5 Makro-Helfer">
+    <button id="dsa5-helper-button" title="DSA5 Makro-Helfer">
       <i class="fas fa-dice-d20"></i>
     </button>
   `);
   
-  // Füge Button zur Sidebar hinzu (neben dem Chat)
-  $('#sidebar').prepend(button);
+  // Füge Button VOR dem ersten Tab in der Sidebar ein
+  $('#sidebar-tabs').before(button);
   
   // Click Event
-  button.on('click', (event) => {
+  button.on('click', function(event) {
     event.preventDefault();
+    event.stopPropagation();
     console.log('DSA5 Makro-Helfer | Button geklickt');
     zeigeHauptmenu();
   });
   
-  console.log('DSA5 Makro-Helfer | Button erstellt');
+  console.log('DSA5 Makro-Helfer | Button erstellt und hinzugefügt');
 }
 
 function zeigeHauptmenu() {
@@ -677,3 +685,4 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
+
