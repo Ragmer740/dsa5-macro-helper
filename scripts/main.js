@@ -644,6 +644,15 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
     qs: qualitaetsstufe,
     patzer: istPatzer,
     kritisch: istKritisch
-      };
-}
+  };
+}`;
 
+  await Macro.create({
+    name: "Mehrfach-Fertigkeitsproben",
+    type: 'script',
+    command: command,
+    img: 'icons/svg/d20-grey.svg'
+  });
+
+  ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
+}
