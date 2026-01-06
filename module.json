@@ -2,7 +2,7 @@
   "id": "dsa5-macro-helper",
   "title": "DSA5 Makro-Helfer",
   "description": "Hilft beim Erstellen von DSA5 Fertigkeitsproben-Makros",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -16,6 +16,7 @@
   "esmodules": [
     "scripts/main.js"
   ],
+  "scripts": [],
   "styles": [
     "styles/module.css"
   ],
@@ -29,5 +30,4 @@
   "url": "https://github.com/Ragmer740/dsa5-macro-helper",
   "manifest": "https://github.com/Ragmer740/dsa5-macro-helper/releases/latest/download/module.json",
   "download": "https://github.com/Ragmer740/dsa5-macro-helper/releases/latest/download/module.zip"
-
 }
