@@ -439,10 +439,7 @@ async function erstelleSkript3Makro() {
     await existingMacro.delete();
   }
 
-  const command = `// DSA5 Mehrfach-Fertigkeitsproben
-// Dieses Skript liest die Werte aus vorhandenen Makros (basierend auf Skript 2)
-
-const alleMakros = game.macros.contents;
+  const command = String.raw`const alleMakros = game.macros.contents;
 const fertigkeitsMakros = [];
 
 for (let makro of alleMakros) {
@@ -452,8 +449,8 @@ for (let makro of alleMakros) {
         command.includes('const fertigkeitswert =') && 
         command.includes('const fertigkeitsname =')) {
       
-      const eigenschaftenMatch = command.match(/const eigenschaften = \\[(\\d+), (\\d+), (\\d+)\\]/);
-      const fertigkeitswertMatch = command.match(/const fertigkeitswert = (\\d+)/);
+      const eigenschaftenMatch = command.match(/const eigenschaften = \[(\d+), (\d+), (\d+)\]/);
+      const fertigkeitswertMatch = command.match(/const fertigkeitswert = (\d+)/);
       const fertigkeitsnameMatch = command.match(/const fertigkeitsname = ["'](.+?)["']/);
       
       if (eigenschaftenMatch && fertigkeitswertMatch && fertigkeitsnameMatch) {
@@ -641,6 +638,7 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
       const differenz = modifizierterWurf - eigenschaft;
       fertigkeitspunkteUebrig -= differenz;
     }
+  }
 
   let qualitaetsstufe = 0;
   if (fertigkeitspunkteUebrig < 0) {
@@ -677,8 +675,3 @@ async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, e
 
   ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
 }
-
-
-
-
-
