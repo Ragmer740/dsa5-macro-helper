@@ -425,48 +425,42 @@ async function ausfuehrenFertigkeitsprobe(eigenschaften, fertigkeitswert, name, 
 
 // Erstelle Skript 3 Makro
 async function erstelleSkript3Makro() {
-  console.log('DSA5 Makro-Helfer | Skript 3 wird erstellt');
+  console.log('DSA5 Makro-Helfer | Skript 3 wird geöffnet');
   
-  const existingMacro = game.macros.find(m => m.name === "Mehrfach-Fertigkeitsproben");
-  
-  if (existingMacro) {
-    const confirm = await Dialog.confirm({
-      title: "Makro existiert bereits",
-      content: "<p>Ein Makro mit dem Namen 'Mehrfach-Fertigkeitsproben' existiert bereits. Überschreiben?</p>"
-    });
-    
-    if (!confirm) return;
-    await existingMacro.delete();
+  // Schritt 1: Finde alle verfügbaren Skript-2 Makros
+  const alleMakros = game.macros.contents;
+  const fertigkeitsMakros = [];
+
+  for (let makro of alleMakros) {
+    try {
+      const cmd = makro.command;
+      if (cmd.includes('const eigenschaften =') && cmd.includes('const fertigkeitswert =') && cmd.includes('const fertigkeitsname =')) {
+        const eigenschaftenMatch = cmd.match(/const eigenschaften = \[(\d+), (\d+), (\d+)\]/);
+        const fertigkeitswertMatch = cmd.match(/const fertigkeitswert = (\d+)/);
+        const fertigkeitsnameMatch = cmd.match(/const fertigkeitsname = ["'](.+?)["']/);
+        
+        if (eigenschaftenMatch && fertigkeitswertMatch && fertigkeitsnameMatch) {
+          fertigkeitsMakros.push({
+            id: makro.id,
+            makroName: makro.name,
+            name: fertigkeitsnameMatch[1],
+            eigenschaften: [parseInt(eigenschaftenMatch[1]), parseInt(eigenschaftenMatch[2]), parseInt(eigenschaftenMatch[3])],
+            fertigkeitswert: parseInt(fertigkeitswertMatch[1])
+          });
+        }
+      }
+    } catch (e) { continue; }
   }
 
-  // Verwende einzelne Anführungszeichen und normale Strings statt Template Literals
-  const command = `const alleMakros = game.macros.contents;
-const fertigkeitsMakros = [];
+  if (fertigkeitsMakros.length === 0) {
+    ui.notifications.warn("Keine Fertigkeits-Makros gefunden! Erstelle zuerst Makros mit Skript 2.");
+    return;
+  }
 
-for (let makro of alleMakros) {
-  try {
-    const cmd = makro.command;
-    if (cmd.includes('const eigenschaften =') && cmd.includes('const fertigkeitswert =') && cmd.includes('const fertigkeitsname =')) {
-      const eigenschaftenMatch = cmd.match(/const eigenschaften = \\[(\\d+), (\\d+), (\\d+)\\]/);
-      const fertigkeitswertMatch = cmd.match(/const fertigkeitswert = (\\d+)/);
-      const fertigkeitsnameMatch = cmd.match(/const fertigkeitsname = ["'](.+?)["']/);
-      
-      if (eigenschaftenMatch && fertigkeitswertMatch && fertigkeitsnameMatch) {
-        fertigkeitsMakros.push({
-          id: makro.id,
-          makroName: makro.name,
-          name: fertigkeitsnameMatch[1],
-          eigenschaften: [parseInt(eigenschaftenMatch[1]), parseInt(eigenschaftenMatch[2]), parseInt(eigenschaftenMatch[3])],
-          fertigkeitswert: parseInt(fertigkeitswertMatch[1])
-        });
-      }
-    }
-  } catch (e) { continue; }
-}
+  // Sortiere alphabetisch nach Makro-Name
+  fertigkeitsMakros.sort((a, b) => a.makroName.localeCompare(b.makroName));
 
-if (fertigkeitsMakros.length === 0) {
-  ui.notifications.warn("Keine Fertigkeits-Makros gefunden!");
-} else {
+  // Schritt 2: Dialog zur Auswahl der Fertigkeiten UND Makro-Name
   let checkboxes = '';
   for (let i = 0; i < fertigkeitsMakros.length; i++) {
     const f = fertigkeitsMakros[i];
@@ -477,49 +471,74 @@ if (fertigkeitsMakros.length === 0) {
   }
 
   new Dialog({
-    title: "Fertigkeiten auswählen",
-    content: '<form><p>Wähle die Fertigkeiten aus:</p>' + checkboxes + '</form>',
+    title: "Mehrfach-Probe erstellen",
+    content: `
+      <form>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="font-weight: bold;">Name des neuen Makros:</label>
+          <input type="text" name="makroName" value="Gruppenprobe" style="width: 100%; padding: 5px;" placeholder="z.B. Sinnesschärfe Gruppe"/>
+        </div>
+        <hr>
+        <p style="font-weight: bold;">Wähle die Fertigkeiten aus:</p>
+        ${checkboxes}
+      </form>
+    `,
     buttons: {
-      weiter: {
-        icon: '<i class="fas fa-arrow-right"></i>',
-        label: "Weiter",
+      create: {
+        icon: '<i class="fas fa-check"></i>',
+        label: "Makro erstellen",
         callback: (html) => {
+          const makroName = html.find('[name="makroName"]').val() || "Gruppenprobe";
           let selected = [];
           fertigkeitsMakros.forEach((f, i) => {
-            if (html.find('#fertigkeit' + i).is(':checked')) selected.push(f);
+            if (html.find('#fertigkeit' + i).is(':checked')) {
+              selected.push(f);
+            }
           });
+          
           if (selected.length === 0) {
             ui.notifications.warn("Bitte mindestens eine Fertigkeit auswählen!");
             return;
           }
-          zeigeModDialog(selected);
+          
+          erstelleGruppenMakro(makroName, selected);
         }
       },
-      cancel: { icon: '<i class="fas fa-times"></i>', label: "Abbrechen" }
+      cancel: {
+        icon: '<i class="fas fa-times"></i>',
+        label: "Abbrechen"
+      }
     },
-    default: "weiter"
+    default: "create"
   }).render(true);
 }
 
-function zeigeModDialog(selected) {
-  new Dialog({
-    title: "Modifikatoren",
-    content: '<form><p>Modifikatoren für alle:</p><div class="form-group"><label>Erleichterung:</label><input type="number" name="erleichterung" value="0" min="0"/></div><div class="form-group"><label>Erschwernis:</label><input type="number" name="erschwernis" value="0" min="0"/></div></form>',
-    buttons: {
-      roll: {
-        icon: '<i class="fas fa-dice"></i>',
-        label: "Würfeln",
-        callback: async (html) => {
-          const erl = parseInt(html.find('[name="erleichterung"]').val()) || 0;
-          const ers = parseInt(html.find('[name="erschwernis"]').val()) || 0;
-          await wuerfeln(selected, erl, ers);
-        }
-      },
-      cancel: { icon: '<i class="fas fa-times"></i>', label: "Abbrechen" }
+async function erstelleGruppenMakro(makroName, selectedFertigkeiten) {
+  console.log('DSA5 Makro-Helfer | Erstelle Gruppenmakro:', makroName);
+  
+  // Erstelle JSON-String mit den ausgewählten Fertigkeiten
+  const fertigkeitenData = JSON.stringify(selectedFertigkeiten);
+  
+  // Generiere den Makro-Code mit fest einprogrammierten Fertigkeiten
+  const command = `const fertigkeiten = ${fertigkeitenData};
+
+new Dialog({
+  title: "Modifikatoren für ${makroName}",
+  content: '<form><p>Modifikatoren für alle Proben:</p><div class="form-group"><label>Erleichterung:</label><input type="number" name="erleichterung" value="0" min="0"/></div><div class="form-group"><label>Erschwernis:</label><input type="number" name="erschwernis" value="0" min="0"/></div></form>',
+  buttons: {
+    roll: {
+      icon: '<i class="fas fa-dice"></i>',
+      label: "Würfeln",
+      callback: async (html) => {
+        const erl = parseInt(html.find('[name="erleichterung"]').val()) || 0;
+        const ers = parseInt(html.find('[name="erschwernis"]').val()) || 0;
+        await wuerfeln(fertigkeiten, erl, ers);
+      }
     },
-    default: "roll"
-  }).render(true);
-}
+    cancel: { icon: '<i class="fas fa-times"></i>', label: "Abbrechen" }
+  },
+  default: "roll"
+}).render(true);
 
 async function wuerfeln(ferts, erl, ers) {
   let results = [];
@@ -540,7 +559,7 @@ async function wuerfeln(ferts, erl, ers) {
     rows += '<td style="text-align: center; padding: 5px;">' + (e.erfolg ? e.qs : '-') + '</td>';
     rows += '</tr>';
   }
-  const content = '<div><h3>Mehrfach-Fertigkeitsproben</h3><p><strong>Modifikation:</strong> ' + (disp > 0 ? '+' : '') + disp + ' (Erl: ' + erl + ', Ers: ' + ers + ')</p><hr><table style="width: 100%; border-collapse: collapse;"><thead><tr style="border-bottom: 2px solid #999;"><th style="text-align: left; padding: 5px;">Fertigkeit</th><th style="text-align: center; padding: 5px;">Ergebnis</th><th style="text-align: center; padding: 5px;">QS</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  const content = '<div><h3>${makroName}</h3><p><strong>Modifikation:</strong> ' + (disp > 0 ? '+' : '') + disp + ' (Erl: ' + erl + ', Ers: ' + ers + ')</p><hr><table style="width: 100%; border-collapse: collapse;"><thead><tr style="border-bottom: 2px solid #999;"><th style="text-align: left; padding: 5px;">Fertigkeit</th><th style="text-align: center; padding: 5px;">Ergebnis</th><th style="text-align: center; padding: 5px;">QS</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content });
 }
 
@@ -565,11 +584,11 @@ async function probe(eig, fw, name, erl, ers) {
 }`;
 
   await Macro.create({
-    name: "Mehrfach-Fertigkeitsproben",
+    name: makroName,
     type: 'script',
     command: command,
-    img: 'icons/svg/d20-grey.svg'
+    img: 'icons/svg/dice-d20-highlight.svg'
   });
 
-  ui.notifications.info(`Makro "Mehrfach-Fertigkeitsproben" wurde erstellt!`);
+  ui.notifications.info(`Makro "${makroName}" wurde erstellt!`);
 }
