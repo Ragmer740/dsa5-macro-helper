@@ -439,231 +439,129 @@ async function erstelleSkript3Makro() {
     await existingMacro.delete();
   }
 
-  const command = String.raw`const alleMakros = game.macros.contents;
+  // Verwende einzelne Anführungszeichen und normale Strings statt Template Literals
+  const command = `const alleMakros = game.macros.contents;
 const fertigkeitsMakros = [];
 
 for (let makro of alleMakros) {
   try {
-    const command = makro.command;
-    if (command.includes('const eigenschaften =') && 
-        command.includes('const fertigkeitswert =') && 
-        command.includes('const fertigkeitsname =')) {
-      
-      const eigenschaftenMatch = command.match(/const eigenschaften = \[(\d+), (\d+), (\d+)\]/);
-      const fertigkeitswertMatch = command.match(/const fertigkeitswert = (\d+)/);
-      const fertigkeitsnameMatch = command.match(/const fertigkeitsname = ["'](.+?)["']/);
+    const cmd = makro.command;
+    if (cmd.includes('const eigenschaften =') && cmd.includes('const fertigkeitswert =') && cmd.includes('const fertigkeitsname =')) {
+      const eigenschaftenMatch = cmd.match(/const eigenschaften = \\[(\\d+), (\\d+), (\\d+)\\]/);
+      const fertigkeitswertMatch = cmd.match(/const fertigkeitswert = (\\d+)/);
+      const fertigkeitsnameMatch = cmd.match(/const fertigkeitsname = ["'](.+?)["']/);
       
       if (eigenschaftenMatch && fertigkeitswertMatch && fertigkeitsnameMatch) {
         fertigkeitsMakros.push({
           id: makro.id,
           makroName: makro.name,
           name: fertigkeitsnameMatch[1],
-          eigenschaften: [
-            parseInt(eigenschaftenMatch[1]),
-            parseInt(eigenschaftenMatch[2]),
-            parseInt(eigenschaftenMatch[3])
-          ],
+          eigenschaften: [parseInt(eigenschaftenMatch[1]), parseInt(eigenschaftenMatch[2]), parseInt(eigenschaftenMatch[3])],
           fertigkeitswert: parseInt(fertigkeitswertMatch[1])
         });
       }
     }
-  } catch (e) {
-    continue;
-  }
+  } catch (e) { continue; }
 }
 
 if (fertigkeitsMakros.length === 0) {
-  ui.notifications.warn("Keine Fertigkeits-Makros gefunden! Bitte erstelle zuerst Makros mit Skript 2.");
+  ui.notifications.warn("Keine Fertigkeits-Makros gefunden!");
 } else {
-  let fertigkeitenCheckboxes = fertigkeitsMakros.map((f, i) => 
-    \`<div style="display: flex; align-items: center; margin-bottom: 5px;">
-      <input type="checkbox" name="fertigkeit\${i}" id="fertigkeit\${i}" style="margin: 0 8px 0 0;"/> 
-      <label for="fertigkeit\${i}" style="margin: 0; cursor: pointer;">\${f.makroName} (\${f.eigenschaften.join("/")})</label>
-    </div>\`
-  ).join('');
+  let checkboxes = '';
+  for (let i = 0; i < fertigkeitsMakros.length; i++) {
+    const f = fertigkeitsMakros[i];
+    checkboxes += '<div style="display: flex; align-items: center; margin-bottom: 5px;">';
+    checkboxes += '<input type="checkbox" name="fertigkeit' + i + '" id="fertigkeit' + i + '" style="margin: 0 8px 0 0;"/>';
+    checkboxes += '<label for="fertigkeit' + i + '" style="margin: 0; cursor: pointer;">' + f.makroName + ' (' + f.eigenschaften.join('/') + ')</label>';
+    checkboxes += '</div>';
+  }
 
   new Dialog({
     title: "Fertigkeiten auswählen",
-    content: \`
-      <form>
-        <p>Wähle die Fertigkeiten aus, die gewürfelt werden sollen:</p>
-        \${fertigkeitenCheckboxes}
-      </form>
-    \`,
+    content: '<form><p>Wähle die Fertigkeiten aus:</p>' + checkboxes + '</form>',
     buttons: {
       weiter: {
         icon: '<i class="fas fa-arrow-right"></i>',
         label: "Weiter",
         callback: (html) => {
-          let ausgewaehlteFertigkeiten = [];
+          let selected = [];
           fertigkeitsMakros.forEach((f, i) => {
-            if (html.find(\`#fertigkeit\${i}\`).is(':checked')) {
-              ausgewaehlteFertigkeiten.push(f);
-            }
+            if (html.find('#fertigkeit' + i).is(':checked')) selected.push(f);
           });
-          
-          if (ausgewaehlteFertigkeiten.length === 0) {
+          if (selected.length === 0) {
             ui.notifications.warn("Bitte mindestens eine Fertigkeit auswählen!");
             return;
           }
-          
-          zeigeModifikatorenDialog(ausgewaehlteFertigkeiten);
+          zeigeModDialog(selected);
         }
       },
-      cancel: {
-        icon: '<i class="fas fa-times"></i>',
-        label: "Abbrechen"
-      }
+      cancel: { icon: '<i class="fas fa-times"></i>', label: "Abbrechen" }
     },
     default: "weiter"
   }).render(true);
 }
 
-function zeigeModifikatorenDialog(ausgewaehlteFertigkeiten) {
+function zeigeModDialog(selected) {
   new Dialog({
-    title: "Modifikatoren für alle Proben",
-    content: \`
-      <form>
-        <p>Diese Modifikatoren gelten für alle ausgewählten Fertigkeiten:</p>
-        <div class="form-group">
-          <label>Erleichterung:</label>
-          <input type="number" name="erleichterung" value="0" min="0" step="1"/>
-        </div>
-        <div class="form-group">
-          <label>Erschwernis:</label>
-          <input type="number" name="erschwernis" value="0" min="0" step="1"/>
-        </div>
-      </form>
-    \`,
+    title: "Modifikatoren",
+    content: '<form><p>Modifikatoren für alle:</p><div class="form-group"><label>Erleichterung:</label><input type="number" name="erleichterung" value="0" min="0"/></div><div class="form-group"><label>Erschwernis:</label><input type="number" name="erschwernis" value="0" min="0"/></div></form>',
     buttons: {
       roll: {
         icon: '<i class="fas fa-dice"></i>',
-        label: "Alle würfeln",
+        label: "Würfeln",
         callback: async (html) => {
-          const erleichterung = parseInt(html.find('[name="erleichterung"]').val()) || 0;
-          const erschwernis = parseInt(html.find('[name="erschwernis"]').val()) || 0;
-          
-          await wuerfelAlleFertigkeiten(ausgewaehlteFertigkeiten, erleichterung, erschwernis);
+          const erl = parseInt(html.find('[name="erleichterung"]').val()) || 0;
+          const ers = parseInt(html.find('[name="erschwernis"]').val()) || 0;
+          await wuerfeln(selected, erl, ers);
         }
       },
-      cancel: {
-        icon: '<i class="fas fa-times"></i>',
-        label: "Abbrechen"
-      }
+      cancel: { icon: '<i class="fas fa-times"></i>', label: "Abbrechen" }
     },
     default: "roll"
   }).render(true);
 }
 
-async function wuerfelAlleFertigkeiten(fertigkeiten, erleichterung, erschwernis) {
-  let ergebnisse = [];
-  
-  for (let fertigkeit of fertigkeiten) {
-    const ergebnis = await fuehreFertigkeitsprobeAus(
-      fertigkeit.eigenschaften,
-      fertigkeit.fertigkeitswert,
-      fertigkeit.name,
-      erleichterung,
-      erschwernis
-    );
-    ergebnisse.push(ergebnis);
+async function wuerfeln(ferts, erl, ers) {
+  let results = [];
+  for (let f of ferts) {
+    results.push(await probe(f.eigenschaften, f.fertigkeitswert, f.name, erl, ers));
   }
-  
-  const modifikation = erleichterung - erschwernis;
-  const anzeigeModifikator = -modifikation;
-  
-  let chatContent = \`
-    <div class="dsa5-multi-roll">
-      <h3>Mehrfach-Fertigkeitsproben</h3>
-      <p><strong>Modifikation:</strong> \${anzeigeModifikator > 0 ? '+' : ''}\${anzeigeModifikator} (Erleichterung: \${erleichterung}, Erschwernis: \${erschwernis})</p>
-      <hr>
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr style="border-bottom: 2px solid #999;">
-            <th style="text-align: left; padding: 5px;">Fertigkeit</th>
-            <th style="text-align: center; padding: 5px;">Ergebnis</th>
-            <th style="text-align: center; padding: 5px;">QS</th>
-          </tr>
-        </thead>
-        <tbody>
-          \${ergebnisse.map(e => \`
-            <tr style="border-bottom: 1px solid #ccc;">
-              <td style="padding: 5px;">\${e.name}</td>
-              <td style="text-align: center; padding: 5px;">
-                \${e.erfolg 
-                  ? '<span style="color: green;">✓ Erfolg</span>' 
-                  : '<span style="color: red;">✗ Fehlschlag</span>'}
-                \${e.patzer ? ' <span style="color: red; font-weight: bold;">PATZER</span>' : ''}
-                \${e.kritisch ? ' <span style="color: green; font-weight: bold;">KRITISCH</span>' : ''}
-              </td>
-              <td style="text-align: center; padding: 5px;">\${e.erfolg ? e.qs : '-'}</td>
-            </tr>
-          \`).join('')}
-        </tbody>
-      </table>
-    </div>
-  \`;
-  
-  ChatMessage.create({
-    user: game.user.id,
-    speaker: ChatMessage.getSpeaker(),
-    content: chatContent
-  });
+  const mod = erl - ers;
+  const disp = -mod;
+  let rows = '';
+  for (let e of results) {
+    rows += '<tr style="border-bottom: 1px solid #ccc;">';
+    rows += '<td style="padding: 5px;">' + e.name + '</td>';
+    rows += '<td style="text-align: center; padding: 5px;">';
+    rows += e.erfolg ? '<span style="color: green;">✓ Erfolg</span>' : '<span style="color: red;">✗ Fehlschlag</span>';
+    if (e.patzer) rows += ' <span style="color: red; font-weight: bold;">PATZER</span>';
+    if (e.kritisch) rows += ' <span style="color: green; font-weight: bold;">KRITISCH</span>';
+    rows += '</td>';
+    rows += '<td style="text-align: center; padding: 5px;">' + (e.erfolg ? e.qs : '-') + '</td>';
+    rows += '</tr>';
+  }
+  const content = '<div><h3>Mehrfach-Fertigkeitsproben</h3><p><strong>Modifikation:</strong> ' + (disp > 0 ? '+' : '') + disp + ' (Erl: ' + erl + ', Ers: ' + ers + ')</p><hr><table style="width: 100%; border-collapse: collapse;"><thead><tr style="border-bottom: 2px solid #999;"><th style="text-align: left; padding: 5px;">Fertigkeit</th><th style="text-align: center; padding: 5px;">Ergebnis</th><th style="text-align: center; padding: 5px;">QS</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content });
 }
 
-async function fuehreFertigkeitsprobeAus(eigenschaften, fertigkeitswert, name, erleichterung, erschwernis) {
-  const modifikation = erleichterung - erschwernis;
-
-  const wuerfe = [
-    await new Roll("1d20").evaluate(),
-    await new Roll("1d20").evaluate(),
-    await new Roll("1d20").evaluate()
-  ];
-
-  const wurfergebnisse = wuerfe.map(r => r.total);
-  const anzahl20 = wurfergebnisse.filter(w => w === 20).length;
-  const anzahl1 = wurfergebnisse.filter(w => w === 1).length;
-
-  let istPatzer = anzahl20 >= 2;
-  let istKritisch = anzahl1 >= 2;
-  let fertigkeitspunkteUebrig = fertigkeitswert;
-  let probeGelungen = true;
-
+async function probe(eig, fw, name, erl, ers) {
+  const mod = erl - ers;
+  const w = [await new Roll("1d20").evaluate(), await new Roll("1d20").evaluate(), await new Roll("1d20").evaluate()];
+  const vals = w.map(r => r.total);
+  const c20 = vals.filter(v => v === 20).length;
+  const c1 = vals.filter(v => v === 1).length;
+  let patzer = c20 >= 2;
+  let krit = c1 >= 2;
+  let fp = fw;
   for (let i = 0; i < 3; i++) {
-    const eigenschaft = eigenschaften[i];
-    const wurf = wurfergebnisse[i];
-    const modifizierterWurf = wurf - modifikation;
-    
-    if (modifizierterWurf > eigenschaft) {
-      const differenz = modifizierterWurf - eigenschaft;
-      fertigkeitspunkteUebrig -= differenz;
-    }
+    const mw = vals[i] - mod;
+    if (mw > eig[i]) fp -= (mw - eig[i]);
   }
-
-  let qualitaetsstufe = 0;
-  if (fertigkeitspunkteUebrig < 0) {
-    probeGelungen = false;
-  } else {
-    qualitaetsstufe = Math.floor(fertigkeitspunkteUebrig / 3) + 1;
-    if (qualitaetsstufe > 6) qualitaetsstufe = 6;
-  }
-
-  if (istPatzer) {
-    probeGelungen = false;
-    qualitaetsstufe = 0;
-  }
-  if (istKritisch) {
-    probeGelungen = true;
-    qualitaetsstufe = Math.max(qualitaetsstufe, 1);
-  }
-
-  return {
-    name: name,
-    erfolg: probeGelungen,
-    qs: qualitaetsstufe,
-    patzer: istPatzer,
-    kritisch: istKritisch
-  };
+  let ok = fp >= 0;
+  let qs = ok ? Math.min(6, Math.floor(fp / 3) + 1) : 0;
+  if (patzer) { ok = false; qs = 0; }
+  if (krit) { ok = true; qs = Math.max(qs, 1); }
+  return { name: name, erfolg: ok, qs: qs, patzer: patzer, kritisch: krit };
 }`;
 
   await Macro.create({
