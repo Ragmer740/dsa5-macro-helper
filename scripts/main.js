@@ -275,7 +275,8 @@ async function fuehreProbeAus() {
   ChatMessage.create({
     user: game.user.id,
     speaker: ChatMessage.getSpeaker(),
-    content: chatContent
+    content: chatContent,
+    whisper: [game.user.id]
   });
 }
 
@@ -560,7 +561,7 @@ async function wuerfeln(ferts, erl, ers) {
     rows += '</tr>';
   }
   const content = '<div><h3>${makroName}</h3><p><strong>Modifikation:</strong> ' + (disp > 0 ? '+' : '') + disp + ' (Erl: ' + erl + ', Ers: ' + ers + ')</p><hr><table style="width: 100%; border-collapse: collapse;"><thead><tr style="border-bottom: 2px solid #999;"><th style="text-align: left; padding: 5px;">Fertigkeit</th><th style="text-align: center; padding: 5px;">Ergebnis</th><th style="text-align: center; padding: 5px;">QS</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
-  ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content });
+  ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content, whisper: [game.user.id] });
 }
 
 async function probe(eig, fw, name, erl, ers) {
