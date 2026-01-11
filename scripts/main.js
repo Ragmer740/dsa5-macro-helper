@@ -410,7 +410,8 @@ async function ausfuehrenFertigkeitsprobe(eigenschaften, fertigkeitswert, name, 
   ChatMessage.create({
     user: game.user.id,
     speaker: ChatMessage.getSpeaker(),
-    content: chatContent
+    content: chatContent,
+    whisper: [game.user.id]
   });
 }`;
 
@@ -593,3 +594,4 @@ async function probe(eig, fw, name, erl, ers) {
 
   ui.notifications.info(`Makro "${makroName}" wurde erstellt!`);
 }
+
